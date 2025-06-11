@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  activemq:
+    image: rmohr/activemq:5.15.9
+    ports:
+      - "8161:8161"
+      - "61616:61616"
+    environment:
+      - ACTIVEMQ_ADMIN_USER=admin
+      - ACTIVEMQ_ADMIN_PASSWORD=admin
+  
+  mysql:
+    image: mysql:8.0
+    container_name: saga-mysql
+    volumes:
+      - ./data/db_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d/
+    command: [
+      '--character-set-server=utf8mb4',
+      '--collation-server=utf8mb4_unicode_ci',
+      '--skip-character-set-client-handshake'
+    ]
+    environment:
+      MYSQL_ROOT_PASSWORD: root1234
+      MYSQL_DATABASE: saga_db # Thay đổi tên database nếu cần
+      MYSQL_USER: saga_user # Thêm user cho các microservice
+      MYSQL_PASSWORD: saga_password # Thêm password cho user
+    ports:
+      - "3306:3306"

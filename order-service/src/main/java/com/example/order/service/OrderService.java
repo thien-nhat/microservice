@@ -1,0 +1,59 @@
+package com.example.order.service;
+
+import com.example.order.entity.Order;
+import com.example.order.entity.OrderStatus;
+import com.example.order.repository.OrderRepository;
+import com.example.shared.events.EventPublisher;
+import com.example.shared.events.OrderCreatedEvent;
+import org.springframework.stereotype.Service;
+import java.util.UUID;
+
+@Service
+public class OrderService {
+    
+    private final OrderRepository orderRepository;
+    private final EventPublisher eventPublisher;
+    
+    public OrderService(OrderRepository orderRepository, EventPublisher eventPublisher) {
+        this.orderRepository = orderRepository;
+        this.eventPublisher = eventPublisher;
+    }
+    public Order getOrder(String orderId) {
+        return orderRepository.getById(orderId);
+    }
+    public Order createOrder(String customerId, String productId, int quantity, double totalAmount) {
+        // 1. Tạo order mới
+        String orderId = UUID.randomUUID().toString();
+        Order order = new Order(orderId, customerId, productId, quantity, totalAmount);
+        
+        // 2. Lưu vào database
+        Order savedOrder = orderRepository.save(order);
+        
+        // 3. Publish OrderCreatedEvent
+        OrderCreatedEvent event = new OrderCreatedEvent(
+            orderId, customerId, totalAmount, productId, quantity
+        );
+        eventPublisher.publishEvent("order.created", event);
+        
+        System.out.println("Order created: " + orderId);
+        return savedOrder;
+    }
+    
+    public void confirmOrder(String orderId) {
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if (order != null) {
+            order.setStatus(OrderStatus.CONFIRMED);
+            orderRepository.save(order);
+            System.out.println("Order confirmed: " + orderId);
+        }
+    }
+    
+    public void cancelOrder(String orderId) {
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if (order != null) {
+            order.setStatus(OrderStatus.CANCELLED);
+            orderRepository.save(order);
+            System.out.println("Order cancelled: " + orderId);
+        }
+    }
+}
