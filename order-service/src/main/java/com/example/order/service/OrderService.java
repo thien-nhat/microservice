@@ -19,7 +19,7 @@ public class OrderService {
         this.eventPublisher = eventPublisher;
     }
     public Order getOrder(String orderId) {
-        return orderRepository.getById(orderId);
+        return orderRepository.getReferenceById(orderId);
     }
     public Order createOrder(String customerId, String productId, int quantity, double totalAmount) {
         // 1. Tạo order mới
