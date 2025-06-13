@@ -7,10 +7,13 @@ import com.example.shared.events.EventPublisher;
 import com.example.shared.events.OrderCreatedEvent;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class OrderService {
     
+    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
     private final OrderRepository orderRepository;
     private final EventPublisher eventPublisher;
     
@@ -19,6 +22,7 @@ public class OrderService {
         this.eventPublisher = eventPublisher;
     }
     public Order getOrder(String orderId) {
+        logger.info("Getting order with id: {}", orderId);
         return orderRepository.getReferenceById(orderId);
     }
     public Order createOrder(String customerId, String productId, int quantity, double totalAmount) {
@@ -35,7 +39,7 @@ public class OrderService {
         );
         eventPublisher.publishEvent("order.created", event);
         
-        System.out.println("Order created: " + orderId);
+        logger.info("Order created: {}", orderId);
         return savedOrder;
     }
     
@@ -44,7 +48,7 @@ public class OrderService {
         if (order != null) {
             order.setStatus(OrderStatus.CONFIRMED);
             orderRepository.save(order);
-            System.out.println("Order confirmed: " + orderId);
+            logger.info("Order confirmed: {}", orderId);
         }
     }
     
@@ -53,7 +57,7 @@ public class OrderService {
         if (order != null) {
             order.setStatus(OrderStatus.CANCELLED);
             orderRepository.save(order);
-            System.out.println("Order cancelled: " + orderId);
+            logger.info("Order cancelled: {}", orderId);
         }
     }
 }

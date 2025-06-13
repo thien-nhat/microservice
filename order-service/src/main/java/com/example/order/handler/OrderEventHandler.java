@@ -7,10 +7,13 @@ import com.example.order.service.OrderService;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class OrderEventHandler extends AbstractEventHandler {
     
+    private static final Logger logger = LoggerFactory.getLogger(OrderEventHandler.class);
     private final OrderService orderService;
     
     public OrderEventHandler(ObjectMapper objectMapper, OrderService orderService) {
@@ -21,7 +24,7 @@ public class OrderEventHandler extends AbstractEventHandler {
     @JmsListener(destination = "payment.processed")
     public void handlePaymentProcessed(String eventJson) {
         PaymentProcessedEvent event = parseEvent(eventJson, PaymentProcessedEvent.class);
-        System.out.println("Order Service received PaymentProcessedEvent: " + event.getOrderId());
+        logger.info("Order Service received PaymentProcessedEvent: {}", event.getOrderId());
         
         if (!event.isSuccess()) {
             // Payment failed -> cancel order
@@ -33,7 +36,7 @@ public class OrderEventHandler extends AbstractEventHandler {
     @JmsListener(destination = "inventory.reserved")
     public void handleInventoryReserved(String eventJson) {
         InventoryReservedEvent event = parseEvent(eventJson, InventoryReservedEvent.class);
-        System.out.println("Order Service received InventoryReservedEvent: " + event.getOrderId());
+        logger.info("Order Service received InventoryReservedEvent: {}", event.getOrderId());
         
         if (event.isSuccess()) {
             // Both payment and inventory successful -> confirm order

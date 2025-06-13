@@ -13,11 +13,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 @Transactional
 public class InventoryService {
     
+    private static final Logger logger = LoggerFactory.getLogger(InventoryService.class);
     private final InventoryRepository inventoryRepository;
     private final InventoryReservationRepository reservationRepository;
     private final EventPublisher eventPublisher;
@@ -35,8 +38,7 @@ public class InventoryService {
      * Được gọi khi nhận OrderCreatedEvent
      */
     public void reserveInventory(String orderId, String productId, int quantity) {
-        System.out.println("Attempting to reserve inventory - Order: " + orderId + 
-                          ", Product: " + productId + ", Quantity: " + quantity);
+        logger.info("Attempting to reserve inventory - Order: {}, Product: {}, Quantity: {}", orderId, productId, quantity);
         
         try {
             // 1. Tìm sản phẩm trong kho
@@ -70,11 +72,10 @@ public class InventoryService {
             publishInventoryReservedEvent(orderId, productId, quantity, true, 
                                         "Inventory reserved successfully. Reservation ID: " + reservationId);
             
-            System.out.println("Inventory reserved successfully - Order: " + orderId + 
-                              ", Reservation ID: " + reservationId);
+            logger.info("Inventory reserved successfully - Order: {}, Reservation ID: {}", orderId, reservationId);
             
         } catch (Exception e) {
-            System.err.println("Error reserving inventory: " + e.getMessage());
+            logger.error("Error reserving inventory: {}", e.getMessage());
             publishInventoryReservedEvent(orderId, productId, quantity, false, 
                                         "Error: " + e.getMessage());
         }
@@ -85,7 +86,7 @@ public class InventoryService {
      * Được gọi khi order được confirm
      */
     public void confirmInventoryReservation(String orderId, String productId, int quantity) {
-        System.out.println("Confirming inventory reservation - Order: " + orderId);
+        logger.info("Confirming inventory reservation - Order: {}", orderId);
         
         try {
             // 1. Tìm reservation
@@ -93,7 +94,7 @@ public class InventoryService {
                 reservationRepository.findByOrderIdAndProductId(orderId, productId);
             
             if (!reservationOpt.isPresent()) {
-                System.err.println("Reservation not found for order: " + orderId);
+                logger.error("Reservation not found for order: {}", orderId);
                 return;
             }
             
@@ -102,7 +103,7 @@ public class InventoryService {
             // 2. Tìm inventory
             Optional<Inventory> inventoryOpt = inventoryRepository.findById(productId);
             if (!inventoryOpt.isPresent()) {
-                System.err.println("Inventory not found for product: " + productId);
+                logger.error("Inventory not found for product: {}", productId);
                 return;
             }
             
@@ -120,10 +121,10 @@ public class InventoryService {
             InventoryConfirmedEvent event = new InventoryConfirmedEvent(orderId, productId, quantity);
             eventPublisher.publishEvent("inventory.confirmed", event);
             
-            System.out.println("Inventory reservation confirmed - Order: " + orderId);
+            logger.info("Inventory reservation confirmed - Order: {}", orderId);
             
         } catch (Exception e) {
-            System.err.println("Error confirming inventory reservation: " + e.getMessage());
+            logger.error("Error confirming inventory reservation: {}", e.getMessage());
         }
     }
     
@@ -132,7 +133,7 @@ public class InventoryService {
      * Được gọi khi order bị cancel
      */
     public void releaseInventoryReservation(String orderId, String productId, int quantity) {
-        System.out.println("Releasing inventory reservation - Order: " + orderId);
+        logger.info("Releasing inventory reservation - Order: {}", orderId);
         
         try {
             // 1. Tìm reservation
@@ -140,7 +141,7 @@ public class InventoryService {
                 reservationRepository.findByOrderIdAndProductId(orderId, productId);
             
             if (!reservationOpt.isPresent()) {
-                System.err.println("Reservation not found for order: " + orderId);
+                logger.error("Reservation not found for order: {}", orderId);
                 return;
             }
             
@@ -148,14 +149,14 @@ public class InventoryService {
             
             // Chỉ release nếu đang ở trạng thái RESERVED
             if (reservation.getStatus() != ReservationStatus.RESERVED) {
-                System.err.println("Cannot release reservation with status: " + reservation.getStatus());
+                logger.error("Cannot release reservation with status: {}", reservation.getStatus());
                 return;
             }
             
             // 2. Tìm inventory
             Optional<Inventory> inventoryOpt = inventoryRepository.findById(productId);
             if (!inventoryOpt.isPresent()) {
-                System.err.println("Inventory not found for product: " + productId);
+                logger.error("Inventory not found for product: {}", productId);
                 return;
             }
             
@@ -173,10 +174,10 @@ public class InventoryService {
             InventoryReleasedEvent event = new InventoryReleasedEvent(orderId, productId, quantity);
             eventPublisher.publishEvent("inventory.released", event);
             
-            System.out.println("Inventory reservation released - Order: " + orderId);
+            logger.info("Inventory reservation released - Order: {}", orderId);
             
         } catch (Exception e) {
-            System.err.println("Error releasing inventory reservation: " + e.getMessage());
+            logger.error("Error releasing inventory reservation: {}", e.getMessage());
         }
     }
     
@@ -199,8 +200,7 @@ public class InventoryService {
             inventory.setTotalQuantity(inventory.getTotalQuantity() + additionalQuantity);
             inventoryRepository.save(inventory);
             
-            System.out.println("Restocked inventory - Product: " + productId + 
-                              ", Added: " + additionalQuantity);
+            logger.info("Restocked inventory - Product: {}, Added: {}", productId, additionalQuantity);
         }
     }
     
@@ -210,7 +210,6 @@ public class InventoryService {
         event.setMessage(message);
         eventPublisher.publishEvent("inventory.reserved", event);
         
-        System.out.println("Published InventoryReservedEvent - Order: " + orderId + 
-                          ", Success: " + success + ", Message: " + message);
+        logger.info("Published InventoryReservedEvent - Order: {}, Success: {}, Message: {}", orderId, success, message);
     }
 }
