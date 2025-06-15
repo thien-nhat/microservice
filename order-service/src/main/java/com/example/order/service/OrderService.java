@@ -4,6 +4,7 @@ import com.example.order.entity.Order;
 import com.example.order.entity.OrderStatus;
 import com.example.order.repository.OrderRepository;
 import com.example.shared.events.EventPublisher;
+import com.example.shared.events.OrderCancelledEvent;
 import com.example.shared.events.OrderCreatedEvent;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
@@ -57,6 +58,14 @@ public class OrderService {
         if (order != null) {
             order.setStatus(OrderStatus.CANCELLED);
             orderRepository.save(order);
+            // Publish event to release inventory
+//            OrderCancelledEvent event = new OrderCancelledEvent(
+//                    order.getOrderId(),
+//                    order.getCustomerId(),
+//                    order.getProductId(),
+//                    order.getQuantity()
+//            );
+//            eventPublisher.publishEvent("order.cancelled", event);
             logger.info("Order cancelled: {}", orderId);
         }
     }

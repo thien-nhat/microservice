@@ -22,7 +22,7 @@ public class InventoryEventHandler extends AbstractEventHandler {
         this.inventoryService = inventoryService;
     }
     
-    @JmsListener(destination = "order.created")
+    @JmsListener(destination = "order.created", containerFactory = "topicListenerContainerFactory")
     public void handleOrderCreated(String eventJson) {
         OrderCreatedEvent event = parseEvent(eventJson, OrderCreatedEvent.class);
         logger.info("Inventory Service received OrderCreatedEvent: {}", event.getOrderId());
@@ -35,7 +35,7 @@ public class InventoryEventHandler extends AbstractEventHandler {
         );
     }
     
-    @JmsListener(destination = "order.confirmed")
+    @JmsListener(destination = "order.confirmed", containerFactory = "topicListenerContainerFactory")
     public void handleOrderConfirmed(String eventJson) {
         OrderConfirmedEvent event = parseEvent(eventJson, OrderConfirmedEvent.class);
         logger.info("Inventory Service received OrderConfirmedEvent: {}", event.getOrderId());
@@ -48,7 +48,7 @@ public class InventoryEventHandler extends AbstractEventHandler {
         );
     }
     
-    @JmsListener(destination = "order.cancelled")
+    @JmsListener(destination = "order.cancelled", containerFactory = "topicListenerContainerFactory")
     public void handleOrderCancelled(String eventJson) {
         OrderCancelledEvent event = parseEvent(eventJson, OrderCancelledEvent.class);
         logger.info("Inventory Service received OrderCancelledEvent: {}", event.getOrderId());

@@ -21,7 +21,7 @@ public class OrderEventHandler extends AbstractEventHandler {
         this.orderService = orderService;
     }
     
-    @JmsListener(destination = "payment.processed")
+    @JmsListener(destination = "payment.processed", containerFactory = "topicListenerContainerFactory")
     public void handlePaymentProcessed(String eventJson) {
         PaymentProcessedEvent event = parseEvent(eventJson, PaymentProcessedEvent.class);
         logger.info("Order Service received PaymentProcessedEvent: {}", event.getOrderId());
@@ -33,7 +33,7 @@ public class OrderEventHandler extends AbstractEventHandler {
         // If payment success, wait for inventory confirmation
     }
     
-    @JmsListener(destination = "inventory.reserved")
+    @JmsListener(destination = "inventory.reserved", containerFactory = "topicListenerContainerFactory")
     public void handleInventoryReserved(String eventJson) {
         InventoryReservedEvent event = parseEvent(eventJson, InventoryReservedEvent.class);
         logger.info("Order Service received InventoryReservedEvent: {}", event.getOrderId());

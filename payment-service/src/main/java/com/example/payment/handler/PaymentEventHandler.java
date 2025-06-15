@@ -20,7 +20,7 @@ public class PaymentEventHandler extends AbstractEventHandler {
         this.paymentService = paymentService;
     }
     
-    @JmsListener(destination = "order.created")
+    @JmsListener(destination = "order.created", containerFactory = "topicListenerContainerFactory")
     public void handleOrderCreated(String eventJson) {
         OrderCreatedEvent event = parseEvent(eventJson, OrderCreatedEvent.class);
         logger.info("Received InventoryReservedEvent: {}", eventJson);

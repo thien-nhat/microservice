@@ -20,9 +20,21 @@ public class JmsConfig {
         return connectionFactory;
     }
 
+
+    // Standard JmsTemplate for queues (point-to-point)
     @Bean
     public JmsTemplate jmsTemplate() {
-        return new JmsTemplate(connectionFactory());
+        JmsTemplate template = new JmsTemplate(connectionFactory());
+        template.setPubSubDomain(false); // For queues
+        return template;
+    }
+
+    // Additional JmsTemplate for topics (pub/sub)
+    @Bean
+    public JmsTemplate topicJmsTemplate() {
+        JmsTemplate template = new JmsTemplate(connectionFactory());
+        template.setPubSubDomain(true); // For topics
+        return template;
     }
 
     @Bean
@@ -30,6 +42,17 @@ public class JmsConfig {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory());
         factory.setConcurrency("1-1");
+        factory.setPubSubDomain(false); // For queue listeners
+        return factory;
+    }
+
+    // Additional container factory for topic listeners
+    @Bean
+    public DefaultJmsListenerContainerFactory topicListenerContainerFactory() {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory());
+        factory.setConcurrency("1-1");
+        factory.setPubSubDomain(true); // For topic listeners
         return factory;
     }
 }

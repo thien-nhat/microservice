@@ -13,8 +13,8 @@ public class EventPublisher {
     private final JmsTemplate jmsTemplate;
     private final ObjectMapper objectMapper;
     
-    public EventPublisher(JmsTemplate jmsTemplate, ObjectMapper objectMapper) {
-        this.jmsTemplate = jmsTemplate;
+    public EventPublisher(JmsTemplate topicJmsTemplate, ObjectMapper objectMapper) {
+        this.jmsTemplate = topicJmsTemplate;
         this.objectMapper = objectMapper;
     }
     
